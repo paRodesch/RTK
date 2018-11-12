@@ -31,6 +31,29 @@
 #endif
 #include <itkImageFileWriter.h>
 
+class IterationNotifyCommand: public itk::Command
+{
+    private:
+		unsigned int iterationCount = 0;
+    public:
+		itkNewMacro( IterationNotifyCommand );
+
+		void Execute(itk::Object * caller, const itk::EventObject & event) override
+		{
+			Execute( (const itk::Object *) caller, event);
+		}
+
+		void Execute(const itk::Object * caller, const itk::EventObject & event) override
+		{
+			if( ! itk::IterationEvent().CheckEvent( &event ) )
+			{
+				return;
+			}
+			++iterationCount;
+			std::cout << "Conjugate gradient: iteration " << iterationCount << " completed." << std::endl;
+		}
+};
+
 int main(int argc, char * argv[])
 {
   GGO(rtkconjugategradient, args_info);
@@ -136,6 +159,12 @@ int main(int argc, char * argv[])
   conjugategradient->SetGeometry( geometryReader->GetOutputObject() );
   conjugategradient->SetNumberOfIterations( args_info.niterations_arg );
   conjugategradient->SetDisableDisplacedDetectorFilter(args_info.nodisplaced_flag);
+
+  if(args_info.verbose_flag)
+  	{
+  	IterationNotifyCommand::Pointer iterationNotifyCommand = IterationNotifyCommand::New();
+  	conjugategradient->AddObserver(itk::IterationEvent(), iterationNotifyCommand);
+  	}
 
   TRY_AND_EXIT_ON_ITK_EXCEPTION( conjugategradient->Update() )
 
