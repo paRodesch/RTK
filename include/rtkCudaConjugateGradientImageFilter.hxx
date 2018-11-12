@@ -28,6 +28,7 @@
 #include "rtkCudaConstantVolumeSource.h"
 
 #include <itkMacro.h>
+#include <itkIterationReporter.h>
 
 namespace rtk
 {
@@ -89,6 +90,7 @@ CudaConjugateGradientImageFilter<TImage>
   CUDA_copy(numberOfElements, pR, pP);
 
   // Start iterations
+  itk::IterationReporter iterationReporter(this, 0, 1);
   for (int iter=0; iter<this->m_NumberOfIterations; iter++)
     {
     // Compute A * P_k
@@ -107,6 +109,7 @@ CudaConjugateGradientImageFilter<TImage>
     CUDA_conjugate_gradient(numberOfElements, pX, pR, pP, pAOut);
 
     P_k->Modified();
+    iterationReporter.CompletedStep();
     }
 
   P_k->ReleaseData();
