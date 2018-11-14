@@ -32,7 +32,7 @@ ConjugateGradientConeBeamReconstructionFilter<TOutputImage,
                                               TSingleComponentImage,
                                               TWeightsImage>
 ::ConjugateGradientConeBeamReconstructionFilter()
-: iterationReporter(this, 0, 1)
+: m_IterationReporter(this, 0, 1)
 {
   this->SetNumberOfRequiredInputs(3);
 
@@ -365,13 +365,18 @@ void
 ConjugateGradientConeBeamReconstructionFilter<TOutputImage,
                                               TSingleComponentImage,
                                               TWeightsImage>
-::ReportProgress(itk::Object *who, const itk::EventObject & event)
+::ReportProgress(itk::Object *caller, const itk::EventObject & event)
 {
     if( ! itk::IterationEvent().CheckEvent( &event ) )
-	{
-	return;
-	}
-    iterationReporter.CompletedStep();
+    {
+      return;
+    }
+    const auto * cgCaller = dynamic_cast< const rtk::ConjugateGradientImageFilter<TOutputImage> * >( caller );
+    if ( cgCaller )
+    {
+      m_IntermediateReconstruction = cgCaller->GetOutput();
+      m_IterationReporter.CompletedStep();
+    }
 }
 
 }// end namespace

@@ -187,6 +187,8 @@ public:
     /** Get / Set whether conjugate gradient should be performed on GPU */
     itkGetMacro(CudaConjugateGradient, bool)
     itkSetMacro(CudaConjugateGradient, bool)
+    
+    itkGetConstMacro(IntermediateReconstruction, const TOutputImage *)
 
     /** Getter for ResidualCosts storing array **/
     const std::vector<double> &GetResidualCosts();
@@ -246,7 +248,9 @@ private:
     bool                         m_CudaConjugateGradient;
     bool                         m_DisableDisplacedDetectorFilter;
 
-    itk::IterationReporter iterationReporter;
+    // Iteration reporting
+    const TOutputImage *         m_IntermediateReconstruction;
+    itk::IterationReporter       m_IterationReporter;
 };
 } //namespace RTK
 
