@@ -21,6 +21,7 @@
 
 #include "rtkThreeDCircularProjectionGeometryXMLFile.h"
 #include "rtkConjugateGradientConeBeamReconstructionFilter.h"
+#include "rtkIterationCommands.h"
 
 #include <iostream>
 #include <fstream>
@@ -139,40 +140,16 @@ int main(int argc, char * argv[])
 
   if(args_info.verbose_flag)
     {
-    class IterationNotifyCommand: public itk::Command
-      {
-        private:
-          unsigned int iterationCount = 0;
-        public:
-          itkNewMacro( IterationNotifyCommand );
+    typedef rtk::VerboseIterationCommand<ConjugateGradientFilterType> VerboseIterationCommandType;
+    VerboseIterationCommandType::Pointer verboseIterationCommandType = VerboseIterationCommandType::New();
+    conjugategradient->AddObserver(itk::IterationEvent(), verboseIterationCommandType);
+    }
 
-          void Execute(itk::Object * caller, const itk::EventObject & event) override
-          {
-            Execute( (const itk::Object *) caller, event);
-          }
-
-          void Execute(const itk::Object * caller, const itk::EventObject & event) override
-          {
-            if( ! itk::IterationEvent().CheckEvent( &event ) )
-            {
-              return;
-            }
-            const auto * cgCaller = dynamic_cast< const ConjugateGradientFilterType * >( caller );
-            if ( cgCaller )
-            {
-              ++iterationCount;
-              typedef itk::ImageFileWriter< OutputImageType > WriterType;
-              WriterType::Pointer writer = WriterType::New();
-              writer->SetFileName( "iter" + std::to_string(iterationCount) + ".mha" );
-              writer->SetInput( cgCaller->GetIntermediateReconstruction() );
-              TRY_AND_EXIT_ON_ITK_EXCEPTION( writer->Update() )
-              
-              std::cout << "Conjugate gradient: iteration " << iterationCount << " completed." << std::endl;
-            }
-          }
-      };
-    IterationNotifyCommand::Pointer iterationNotifyCommand = IterationNotifyCommand::New();
-    conjugategradient->AddObserver(itk::IterationEvent(), iterationNotifyCommand);
+  if(args_info.output_every_given) // TODO enable output_every
+    {
+    typedef rtk::OutputIterationCommand<ConjugateGradientFilterType, OutputImageType> OutputIterationCommand;
+    OutputIterationCommand::Pointer outputIterationCommandType = OutputIterationCommand::New();
+    conjugategradient->AddObserver(itk::IterationEvent(), outputIterationCommandType);
     }
 
   TRY_AND_EXIT_ON_ITK_EXCEPTION( conjugategradient->Update() )

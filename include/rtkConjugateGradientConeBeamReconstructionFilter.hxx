@@ -32,7 +32,7 @@ ConjugateGradientConeBeamReconstructionFilter<TOutputImage,
                                               TSingleComponentImage,
                                               TWeightsImage>
 ::ConjugateGradientConeBeamReconstructionFilter()
-: m_IterationReporter(this, 0, 1)
+: m_IterationReporter(this, 0, 1) // report every iteration
 {
   this->SetNumberOfRequiredInputs(3);
 
