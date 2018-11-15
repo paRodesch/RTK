@@ -141,15 +141,16 @@ int main(int argc, char * argv[])
   if(args_info.verbose_flag)
     {
     typedef rtk::VerboseIterationCommand<ConjugateGradientFilterType> VerboseIterationCommandType;
-    VerboseIterationCommandType::Pointer verboseIterationCommandType = VerboseIterationCommandType::New();
-    conjugategradient->AddObserver(itk::IterationEvent(), verboseIterationCommandType);
+    VerboseIterationCommandType::Pointer verboseIterationCommand = VerboseIterationCommandType::New();
+    conjugategradient->AddObserver(itk::IterationEvent(), verboseIterationCommand);
     }
 
-  if(args_info.output_every_given) // TODO enable output_every
+  if(args_info.output_every_given)
     {
     typedef rtk::OutputIterationCommand<ConjugateGradientFilterType, OutputImageType> OutputIterationCommand;
-    OutputIterationCommand::Pointer outputIterationCommandType = OutputIterationCommand::New();
-    conjugategradient->AddObserver(itk::IterationEvent(), outputIterationCommandType);
+    OutputIterationCommand::Pointer outputIterationCommand = OutputIterationCommand::New();
+    outputIterationCommand->SetTriggerEvery(args_info.output_every_arg);
+    conjugategradient->AddObserver(itk::IterationEvent(), outputIterationCommand);
     }
 
   TRY_AND_EXIT_ON_ITK_EXCEPTION( conjugategradient->Update() )

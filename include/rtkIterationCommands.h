@@ -24,7 +24,8 @@ namespace rtk
 
 /** \class IterationCommand
  * \brief Abstract superclass to all iteration callbacks.
- * Derived classes must implement the Run() method.
+ * Derived classes must implement the Run() method. Run() can be triggered
+ * only once in every n iterations.
  *
  * \author Aurélien Coussat
  *
@@ -37,7 +38,10 @@ class IterationCommand: public itk::Command
   protected:
 
     /** How many times this command has been executed. */
-    unsigned int m_iterationCount = 0;
+    unsigned int m_IterationCount = 0;
+
+    /** Trigger the callback every n iterations. */
+    unsigned int m_TriggerEvery = 1;
 
     /** Callback function to be redefined by derived classes. */
     virtual void Run(const TCaller * caller) = 0;
@@ -48,7 +52,9 @@ class IterationCommand: public itk::Command
     typedef IterationCommand Self;
     typedef itk::Command Superclass;
     typedef itk::SmartPointer<Self> Pointer;
-    
+
+    itkSetMacro( TriggerEvery, unsigned int )
+
     void Execute(itk::Object * caller, const itk::EventObject & event) override
     {
       Execute( (const itk::Object *) caller, event );
@@ -60,12 +66,15 @@ class IterationCommand: public itk::Command
       {
         return;
       }
-      ++m_iterationCount;
-      const auto * cCaller = dynamic_cast< const TCaller * >( caller );
-      if ( cCaller )
+      ++m_IterationCount;
+      if ( ( m_IterationCount % m_TriggerEvery ) == 0 )
       {
-        Run( cCaller );
-      } // TODO fail when cast fails
+        const auto * cCaller = dynamic_cast< const TCaller * >( caller );
+        if ( cCaller )
+        {
+          Run( cCaller );
+        } // TODO fail when cast fails
+      }
     }
     
 };
@@ -90,7 +99,7 @@ class VerboseIterationCommand: public IterationCommand<TCaller>
   protected:
     void Run(const TCaller * caller) override
     {
-      std::cout << "Iteration " << this->m_iterationCount << " completed." << std::endl; // TODO allow string personnalization
+      std::cout << "Iteration " << this->m_IterationCount << " completed." << std::endl; // TODO allow string personnalization
     }
 };
 
@@ -119,7 +128,7 @@ class OutputIterationCommand: public IterationCommand<TCaller>
     {
       typedef itk::ImageFileWriter< TOutputImage > WriterType;
       typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "iter" + std::to_string( this->m_iterationCount ) + ".mha" ); // TODO allow to set the name
+      writer->SetFileName( "iter" + std::to_string( this->m_IterationCount ) + ".mha" ); // TODO allow to set the name
       writer->SetInput( caller->GetIntermediateReconstruction() );
       TRY_AND_EXIT_ON_ITK_EXCEPTION( writer->Update() )
     }
