@@ -15,4 +15,4 @@ option "mask"           m "Apply a support binary mask: reconstruction kept null
 option "costs"          - "Show residual costs at each iteration at the end of the process"                           flag   off
 option "nodisplaced"    - "Disable the displaced detector filter"                                                     flag   off
 option "output-every"   - "Output intermediate reconstruction after some iterations"                                  int    no
-
+option "iteration-file-name" - "File name to output intermediate iterations with %d as a placeholder for iteration number" string no

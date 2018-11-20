@@ -150,6 +150,14 @@ int main(int argc, char * argv[])
     typedef rtk::OutputIterationCommand<ConjugateGradientFilterType, OutputImageType> OutputIterationCommand;
     OutputIterationCommand::Pointer outputIterationCommand = OutputIterationCommand::New();
     outputIterationCommand->SetTriggerEvery(args_info.output_every_arg);
+    if(args_info.iteration_file_name_given)
+      {
+      outputIterationCommand->SetFileFormat(args_info.iteration_file_name_arg); // allow better customization?
+      }
+    else
+      {
+      outputIterationCommand->SetFileFormat("iter%d.mha");
+      }
     conjugategradient->AddObserver(itk::IterationEvent(), outputIterationCommand);
     }
 

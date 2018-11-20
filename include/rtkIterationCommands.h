@@ -123,12 +123,23 @@ class OutputIterationCommand: public IterationCommand<TCaller>
     typedef IterationCommand<TCaller> Superclass;
     typedef itk::SmartPointer<Self> Pointer;
     itkNewMacro(Self);
+
+    itkSetMacro( FileFormat, std::string )
+
   protected:
+
+    /** Output file name, where %d is the current iteration number */
+    std::string m_FileFormat;
+
     void Run(const TCaller * caller) override
     {
       typedef itk::ImageFileWriter< TOutputImage > WriterType;
       typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "iter" + std::to_string( this->m_IterationCount ) + ".mha" ); // TODO allow to set the name
+
+      char buffer[100];
+      unsigned int size = sprintf( buffer, m_FileFormat.c_str(), this->m_IterationCount );
+      writer->SetFileName( std::string( buffer, size ) );
+
       writer->SetInput( caller->GetIntermediateReconstruction() );
       TRY_AND_EXIT_ON_ITK_EXCEPTION( writer->Update() )
     }
