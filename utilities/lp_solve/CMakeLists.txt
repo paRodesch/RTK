@@ -8,6 +8,7 @@ if(NOT ITK_SOURCE_DIR)
   include(ITKModuleMacros)
 endif()
 itk_module_warnings_disable(C CXX)
+list(REMOVE_ITEM CMAKE_MODULE_PATH ${ITK_CMAKE_DIR})
 
 # Set up install directories
 add_library(lpsolve55
