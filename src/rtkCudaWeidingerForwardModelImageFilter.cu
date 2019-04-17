@@ -86,13 +86,14 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
                          1,
                          nMaterials);
 
+  float expAttenuationFactors[nEnergies];
   for (unsigned int e=0; e<nEnergies; e++)
-    attenuationFactors[e] = std::exp(-attenuationFactors[e]);
+    expAttenuationFactors[e] = std::exp(-attenuationFactors[e]);
 
   // Get the expected photon counts through these attenuations
   float expectedCounts[nBins];
   matrix_matrix_multiply(efficientSpectrum,
-                         attenuationFactors,
+                         expAttenuationFactors,
                          expectedCounts,
                          nBins,
                          1,
@@ -109,7 +110,7 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
   float intermForGradient[nEnergies * nMaterials];
   for (unsigned int e=0; e<nEnergies; e++)
     for (unsigned int m=0; m<nMaterials; m++)
-      intermForGradient[IDX2D(e,m,nMaterials)] = c_materialAttenuations[IDX2D(e,m,nMaterials)] * attenuationFactors[e];
+      intermForGradient[IDX2D(e,m,nMaterials)] = c_materialAttenuations[IDX2D(e,m,nMaterials)] * expAttenuationFactors[e];
 
   // Multiply by the spectrum
   float interm2ForGradient[nBins * nMaterials];
@@ -145,7 +146,15 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
   for (unsigned int r=0; r<nEnergies; r++)
     for (unsigned int c=0; c<nMaterials; c++)
       for (unsigned int c2=0; c2<nMaterials; c2++)
-        intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] * attenuationFactors[r];
+          if (attenuationFactors[r]<0.1)
+          {
+              intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r];
+          }
+          else
+          {
+              intermForHessian[(r * nMaterials + c) * nMaterials + c2] = 2*c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] * (1-expAttenuationFactors[r]-attenuationFactors[r]*expAttenuationFactors[r])/attenuationFactors[r]/attenuationFactors[r];
+//              intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r];
+          }
 
   // Multiply by the spectrum
   float interm2ForHessian[nBins * nMaterials * nMaterials];
