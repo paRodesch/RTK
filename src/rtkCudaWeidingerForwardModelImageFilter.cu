@@ -145,7 +145,7 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
   for (unsigned int r=0; r<nEnergies; r++)
     for (unsigned int c=0; c<nMaterials; c++)
       for (unsigned int c2=0; c2<nMaterials; c2++)
-        intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] * attenuationFactors[r];
+        intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r];
 
   // Multiply by the spectrum
   float interm2ForHessian[nBins * nMaterials * nMaterials];

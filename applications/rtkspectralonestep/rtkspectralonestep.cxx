@@ -31,6 +31,8 @@
 
 #include <itkImageFileWriter.h>
 
+// #undef RTK_USE_CUDA
+
 int main(int argc, char * argv[])
 {
   GGO(rtkspectralonestep, args_info);
