@@ -163,11 +163,11 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
   // Compute the product with photonCountRatios, with implicit extension
   for (unsigned int b=0; b<nBins; b++)
     for (unsigned int m=0; m<nMaterials; m++)
-      if (photonCountRatios[b]<0.9)
-      {
-        interm2ForHessian[IDX2D(b,m,nMaterials * nMaterials)] *= 1.;
-      }
-    else
+//      if (photonCountRatios[b]<0.9)
+//     {
+//        interm2ForHessian[IDX2D(b,m,nMaterials * nMaterials)] *= 1.;
+//      }
+//    else
       {
         interm2ForHessian[IDX2D(b,m,nMaterials * nMaterials)] *= photonCountRatios[b];
       }
