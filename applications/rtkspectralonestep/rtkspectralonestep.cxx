@@ -241,9 +241,9 @@ int main(int argc, char * argv[])
     if(nMaterials == 2 && nBins == 2)
       rtkspectralonestep<2,2>(args_info);
     else if(nMaterials == 2 && nBins == 5)
-      rtkspectralonestep<2,5>(args_info);
+      rtkspectralonestep<5,2>(args_info);
     else if(nMaterials == 3 && nBins == 5)
-      rtkspectralonestep<3,5>(args_info);
+      rtkspectralonestep<5,3>(args_info);
     else
       {
       std::cerr << nMaterials << " materials and " << nBins << " bins is not handled" << std::endl;
