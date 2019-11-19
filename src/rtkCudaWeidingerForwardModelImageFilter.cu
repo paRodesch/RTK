@@ -87,7 +87,11 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
                          nMaterials);
 
   for (unsigned int e=0; e<nEnergies; e++)
-    attenuationFactors[e] = std::exp(-attenuationFactors[e]);
+    if (attenuationFactors[e]<0.){
+      attenuationFactors[e] = 1-attenuationFactors[e];
+    } else {
+      attenuationFactors[e] = std::exp(-attenuationFactors[e]);
+    }
 
   // Get the expected photon counts through these attenuations
   float expectedCounts[nBins];
@@ -99,18 +103,27 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
                          nEnergies);
 
   // Get intermediate variables used in the computation of the first output
+  float meanRatio = 0 ;
   float oneMinusRatios[nBins];
-  for (unsigned int b=0; b<nBins; b++)
+  for (unsigned int b=0; b<nBins; b++){
     oneMinusRatios[b] = 1 - (pPhoCount[proj_idx * nBins + b] / expectedCounts[b]);
+    meanRatio += (pPhoCount[proj_idx * nBins + b] / expectedCounts[b]);
+  }
+  meanRatio /= 5 ;
 
   // Form an intermediate variable used for the gradient of the cost function,
   // (the derivation of the exponential implies that a m_MaterialAttenuations
   // gets out), by equivalent of element-wise product with implicit extension
   float intermForGradient[nEnergies * nMaterials];
   for (unsigned int e=0; e<nEnergies; e++)
-    for (unsigned int m=0; m<nMaterials; m++)
-      intermForGradient[IDX2D(e,m,nMaterials)] = c_materialAttenuations[IDX2D(e,m,nMaterials)] * attenuationFactors[e];
-
+    if (attenuationFactors[e]>1.){
+      for (unsigned int m=0; m<nMaterials; m++)
+        intermForGradient[IDX2D(e,m,nMaterials)] = c_materialAttenuations[IDX2D(e,m,nMaterials)];
+    } else {
+      for (unsigned int m=0; m<nMaterials; m++)
+        intermForGradient[IDX2D(e,m,nMaterials)] = c_materialAttenuations[IDX2D(e,m,nMaterials)] * attenuationFactors[e];
+    }
+    
   // Multiply by the spectrum
   float interm2ForGradient[nBins * nMaterials];
   matrix_matrix_multiply(efficientSpectrum,
@@ -145,7 +158,14 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
   for (unsigned int r=0; r<nEnergies; r++)
     for (unsigned int c=0; c<nMaterials; c++)
       for (unsigned int c2=0; c2<nMaterials; c2++)
-        intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] * attenuationFactors[r];
+        if (attenuationFactors[r]>1.){
+          for (unsigned int m=0; m<nMaterials; m++)
+            intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] / attenuationFactors[r] ;
+          } else {
+          for (unsigned int m=0; m<nMaterials; m++)
+            intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] * attenuationFactors[r] ;
+          }
+        
 
   // Multiply by the spectrum
   float interm2ForHessian[nBins * nMaterials * nMaterials];
@@ -219,3 +239,4 @@ else
   itkGenericExceptionMacro(<< "The CUDA version of WeidingerForwardModel works with hard-coded parameters, currently set to nBins=5, nEnergies=150 and nMaterials=2 or 3")
 CUDA_CHECK_ERROR;
 }
+  
