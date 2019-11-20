@@ -160,7 +160,7 @@ void kernel_forward_model(float* pMatProj, float* pPhoCount, float* pSpectrum, f
       for (unsigned int c2=0; c2<nMaterials; c2++)
         if (attenuationFactors[r]>1.){
           for (unsigned int m=0; m<nMaterials; m++)
-            intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] / attenuationFactors[r] ;
+            intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] / attenuationFactors[r] * meanRatio ;
           } else {
           for (unsigned int m=0; m<nMaterials; m++)
             intermForHessian[(r * nMaterials + c) * nMaterials + c2] = c_materialAttenuations[c + nMaterials * r] * c_materialAttenuations[c2 + nMaterials * r] * attenuationFactors[r] ;
