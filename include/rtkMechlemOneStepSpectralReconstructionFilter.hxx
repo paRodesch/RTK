@@ -335,22 +335,19 @@ MechlemOneStepSpectralReconstructionFilter< TOutputImage, TPhotonCounts, TSpectr
 
   m_SQSRegul->SetInput(this->GetInputMaterialVolumes());
 
+  m_AddGradients->SetInput1(m_SQSRegul->GetOutput(0));
+  m_AddHessians->SetInputDiagonal(m_SQSRegul->GetOutput(1));
+
   if(this->GetSpatialRegularizationWeights().GetPointer() != nullptr)
     {
-    m_MultiplyRegulGradientsFilter->SetInput1( m_SQSRegul->GetOutput(0) );
+    m_MultiplyRegulGradientsFilter->SetInput1( m_GradientsBackProjectionFilter->GetOutput() );
     m_MultiplyRegulGradientsFilter->SetInput2( this->GetSpatialRegularizationWeights() );
-    m_MultiplyRegulHessiansFilter->SetInput1( m_SQSRegul->GetOutput(1) );
-    m_MultiplyRegulHessiansFilter->SetInput2( this->GetSpatialRegularizationWeights() );
-    m_AddGradients->SetInput1(m_MultiplyRegulGradientsFilter->GetOutput());
-    m_AddHessians->SetInputDiagonal(m_MultiplyRegulHessiansFilter->GetOutput());
+    m_AddGradients->SetInput2(m_MultiplyRegulGradientsFilter->GetOutput());
     }
   else
     {
-    m_AddGradients->SetInput1(m_SQSRegul->GetOutput(0));
-    m_AddHessians->SetInputDiagonal(m_SQSRegul->GetOutput(1));
+    m_AddGradients->SetInput2(m_GradientsBackProjectionFilter->GetOutput());
     }
-
-  m_AddGradients->SetInput2(m_GradientsBackProjectionFilter->GetOutput());
   m_AddHessians->SetInputMatrix(m_HessiansBackProjectionFilter->GetOutput());
 
   m_NewtonFilter->SetInputGradient(m_AddGradients->GetOutput());
