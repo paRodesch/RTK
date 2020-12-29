@@ -63,11 +63,11 @@ divergence_kernel(float * grad_x, float * grad_y, float * grad_z, float * out, i
   else
     A.z = grad_z[id];
 
-  out[id] = (A.x - B.x) / c_Spacing.x + (A.y - B.y) / c_Spacing.y + (A.z - B.z) / c_Spacing.z;
+  out[id] =  ((A.x - B.x) / c_Spacing.x + (A.y - B.y) / c_Spacing.y + (A.z - B.z) / c_Spacing.z);
 }
 
 __global__ void
-gradient_kernel(float * in, float * grad_x, float * grad_y, float * grad_z, int3 c_Size, float3 c_Spacing)
+gradient_kernel(float * in , float * grad_x, float * grad_y, float * grad_z, int3 c_Size, float3 c_Spacing)
 {
   unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
   unsigned int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -84,15 +84,16 @@ gradient_kernel(float * in, float * grad_x, float * grad_y, float * grad_z, int3
   if (i == (c_Size.x - 1))
     grad_x[id] = 0;
   else
-    grad_x[id] = (in[id_x] - in[id]) / c_Spacing.x;
+    grad_x[id] = 0.649519052838329 * tanh( 3.079201435678004 * (in[id_x] - in[id])/ c_Spacing.x) ;
 
   if (j == (c_Size.y - 1))
     grad_y[id] = 0;
   else
-    grad_y[id] = (in[id_y] - in[id]) / c_Spacing.y;
+    grad_y[id] = 0.649519052838329 * tanh( 3.079201435678004 * (in[id_y] - in[id])/ c_Spacing.y) ;
 
   if (k == (c_Size.z - 1))
     grad_z[id] = 0;
   else
-    grad_z[id] = (in[id_z] - in[id]) / c_Spacing.z;
+    grad_z[id] = 0.649519052838329 * tanh( 3.079201435678004 * (in[id_z] - in[id])/ c_Spacing.z) ;
 }
+
